@@ -1,4 +1,4 @@
-package socks5
+package socks
 
 import (
 	"bytes"
@@ -36,7 +36,7 @@ func runTestSocks5Server(t *testing.T, proxy *ProxyInfo) {
 
 	s := NewServer()
 	if proxy.NeedAuth {
-		s.SetAuthChecker(PswdAuthChecker(func(u, p string, ctx map[string]string) error {
+		s.SetAuthChecker(PswdAuthChecker(func(u, p string, ctx Context) error {
 			if u == proxy.Username && p == proxy.Password {
 				return nil
 			}

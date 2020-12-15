@@ -1,4 +1,4 @@
-package socks5
+package socks
 
 import (
 	"errors"
@@ -106,25 +106,17 @@ func (auth *authPswd) WriteTo(w io.Writer) (int64, error) {
 	// | 1  |  1   | 1 to 255 |  1   | 1 to 255 |
 	// +----+------+----------+------+----------+
 
-	bufLen := 1 + 1 + len(auth.username) + 1 + len(auth.password)
-
+	uLen := byte(len(auth.username))
+	pLen := byte(len(auth.password))
+	bufLen := 1 + 1 + uLen + 1 + pLen
 	buf := make([]byte, bufLen)
 
 	// VER
 	buf[0] = dataVerPswd
-
-	// ULEN
-	buf[1] = byte(len(auth.username))
-
-	// UNAME
-	end := 2 + len(auth.username)
-	copy(buf[2:end], auth.username)
-
-	// PLEN
-	buf[end] = byte(len(auth.password))
-
-	// PASSWD
-	copy(buf[end+1:], auth.password)
+	buf[1] = uLen
+	copy(buf[2:2+uLen], auth.username)
+	buf[2+uLen] = pLen
+	copy(buf[2+uLen+1:], auth.password)
 
 	written, err := w.Write(buf)
 	return int64(written), err

@@ -1,4 +1,4 @@
-package socks5
+package socks
 
 import (
 	"net"
@@ -7,7 +7,7 @@ import (
 )
 
 // Requester 解析客户端命令的函数
-type Requester func(req Request, ctx map[string]string) (net.Conn, error)
+type Requester func(req Request, ctx Context) (net.Conn, error)
 
 // AuthPswdFunc 认证账号密码
 type AuthPswdFunc func(username, password string) error
@@ -73,7 +73,7 @@ func (s *server) ListenAndRun(addr string) error {
 func (s *server) serve(conn net.Conn) error {
 	defer conn.Close()
 
-	ctx := make(map[string]string)
+	ctx := NewContext()
 
 	//
 	// 使用checker协议进行握手和身份校验

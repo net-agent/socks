@@ -1,1 +1,1 @@
-package socks5
+package socks

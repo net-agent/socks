@@ -1,4 +1,4 @@
-package socks5
+package socks
 
 import (
 	"net"
@@ -14,7 +14,7 @@ const (
 )
 
 // DefaultRequester 执行net.Dial创建连接，并将两个net.Conn进行连接
-func DefaultRequester(req Request, ctx map[string]string) (net.Conn, error) {
+func DefaultRequester(req Request, ctx Context) (net.Conn, error) {
 	if req.GetCommand() != ConnectCommand {
 		return nil, ErrReplyCmdNotSupported
 	}
