@@ -1,6 +1,7 @@
 package socks
 
 import (
+	"errors"
 	"log"
 	"net"
 	"sync"
@@ -33,6 +34,22 @@ func NewServer() Server {
 	return &server{
 		requester: DefaultRequester,
 		checker:   DefaultAuthChecker(),
+	}
+}
+
+func NewPswdServer(username, password string) Server {
+	checker := DefaultAuthChecker()
+	if username != "" || password != "" {
+		checker = PswdAuthChecker(func(u, p string, ctx Context) error {
+			if u != username || p != password {
+				return errors.New("username or password invalid")
+			}
+			return nil
+		})
+	}
+	return &server{
+		requester: DefaultRequester,
+		checker:   checker,
 	}
 }
 
