@@ -1,7 +1,9 @@
 package socks
 
 import (
+	"log"
 	"net"
+	"sync"
 )
 
 // Requester 解析客户端命令的函数
@@ -16,13 +18,14 @@ type Server interface {
 	SetAuthChecker(AuthChecker)
 	ListenAndRun(string) error
 	Run(net.Listener) error
-	Stop() error
+	Close() error
 }
 
 type server struct {
 	requester Requester
 	checker   AuthChecker
 	listener  net.Listener
+	connWait  sync.WaitGroup
 }
 
 // NewServer 创建新的socks5协议服务端
@@ -40,8 +43,16 @@ func (s *server) SetAuthChecker(in AuthChecker) {
 	s.checker = in
 }
 
-func (s *server) Stop() error {
-	return s.listener.Close()
+func (s *server) Close() error {
+	err := s.listener.Close()
+	if err != nil {
+		return err
+	}
+
+	log.Println("socks5 listener closed, waiting for all conn close")
+	s.connWait.Wait() // 等待所有连接关闭
+
+	return nil
 }
 
 // Run 将服务跑起来
@@ -54,7 +65,9 @@ func (s *server) Run(listener net.Listener) error {
 		}
 
 		go func() {
+			s.connWait.Add(1)
 			s.serve(conn)
+			s.connWait.Done()
 		}()
 	}
 }
