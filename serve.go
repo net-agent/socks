@@ -2,8 +2,6 @@ package socks
 
 import (
 	"net"
-
-	"github.com/GZShi/net-agent/utils"
 )
 
 // Requester 解析客户端命令的函数
@@ -144,6 +142,6 @@ func (s *server) serve(conn net.Conn) error {
 		return err
 	}
 
-	_, _, err = utils.LinkReadWriteCloser(conn, target)
+	_, _, err = LinkReadWriteCloser(conn, target)
 	return err
 }
