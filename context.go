@@ -7,6 +7,7 @@ import (
 
 // Context 服务端请求处理的上下文
 type Context interface {
+	GetConn() net.Conn
 	Set(key string, val interface{})
 	Get(key string) (interface{}, error)
 	Clean()
