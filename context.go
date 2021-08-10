@@ -1,6 +1,9 @@
 package socks
 
-import "errors"
+import (
+	"errors"
+	"net"
+)
 
 // Context 服务端请求处理的上下文
 type Context interface {
@@ -10,14 +13,19 @@ type Context interface {
 }
 
 // NewContext 创建上下文
-func NewContext() Context {
+func NewContext(conn net.Conn) Context {
 	return &context{
 		vals: make(map[string]interface{}),
 	}
 }
 
 type context struct {
+	conn net.Conn
 	vals map[string]interface{}
+}
+
+func (ctx *context) GetConn() net.Conn {
+	return ctx.conn
 }
 
 func (ctx *context) Set(key string, val interface{}) {

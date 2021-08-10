@@ -101,7 +101,7 @@ func (s *server) ListenAndRun(addr string) error {
 func (s *server) serve(conn net.Conn) error {
 	defer conn.Close()
 
-	ctx := NewContext()
+	ctx := NewContext(conn)
 
 	//
 	// 使用checker协议进行握手和身份校验
