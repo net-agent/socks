@@ -81,8 +81,8 @@ func (s *server) Run(listener net.Listener) error {
 			return err
 		}
 
+		s.connWait.Add(1)
 		go func() {
-			s.connWait.Add(1)
 			s.serve(conn)
 			s.connWait.Done()
 		}()
@@ -102,6 +102,7 @@ func (s *server) serve(conn net.Conn) error {
 	defer conn.Close()
 
 	ctx := NewContext(conn)
+	defer ctx.Clean()
 
 	//
 	// 使用checker协议进行握手和身份校验
@@ -121,6 +122,9 @@ func (s *server) serve(conn net.Conn) error {
 			return err
 		}
 		_, err = conn.Write(resp)
+		if err != nil {
+			return err
+		}
 	}
 
 	//
