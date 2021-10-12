@@ -2,6 +2,7 @@ package socks
 
 import (
 	"errors"
+	"io"
 	"log"
 	"net"
 	"sync"
@@ -13,10 +14,14 @@ type Requester func(req Request, ctx Context) (net.Conn, error)
 // AuthPswdFunc 认证账号密码
 type AuthPswdFunc func(username, password string) error
 
+// ConnLinker 两个连接的数据互相读写
+type ConnLinker func(a, b io.ReadWriteCloser) (a2b, b2a int64, err error)
+
 // Server Socks5服务
 type Server interface {
 	SetRequster(Requester)
 	SetAuthChecker(AuthChecker)
+	SetConnLinker(ConnLinker)
 	ListenAndRun(string) error
 	Run(net.Listener) error
 	Close() error
@@ -26,6 +31,7 @@ type server struct {
 	requester Requester
 	checker   AuthChecker
 	listener  net.Listener
+	linker    ConnLinker
 	connWait  sync.WaitGroup
 }
 
@@ -34,6 +40,7 @@ func NewServer() Server {
 	return &server{
 		requester: DefaultRequester,
 		checker:   DefaultAuthChecker(),
+		linker:    LinkReadWriteCloser,
 	}
 }
 
@@ -50,6 +57,7 @@ func NewPswdServer(username, password string) Server {
 	return &server{
 		requester: DefaultRequester,
 		checker:   checker,
+		linker:    LinkReadWriteCloser,
 	}
 }
 
@@ -58,6 +66,9 @@ func (s *server) SetRequster(in Requester) {
 }
 func (s *server) SetAuthChecker(in AuthChecker) {
 	s.checker = in
+}
+func (s *server) SetConnLinker(in ConnLinker) {
+	s.linker = in
 }
 
 func (s *server) Close() error {
@@ -157,6 +168,7 @@ func (s *server) serve(conn net.Conn) error {
 			respCode = repAtypeNotSupported
 		}
 	}
+	defer target.Close()
 
 	// 根据RFC1928，request与reply有相似结构
 	var reply request
@@ -176,6 +188,6 @@ func (s *server) serve(conn net.Conn) error {
 		return err
 	}
 
-	_, _, err = LinkReadWriteCloser(conn, target)
+	_, _, err = s.linker(conn, target)
 	return err
 }
