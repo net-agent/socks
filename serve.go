@@ -148,6 +148,9 @@ func (s *server) serve(conn net.Conn) error {
 	}
 
 	target, respErr := s.requester(&req, ctx)
+	if respErr == nil && target != nil {
+		defer target.Close()
+	}
 	respCode := repSuccess
 	if respErr != nil {
 		respCode = repFailure
@@ -168,7 +171,6 @@ func (s *server) serve(conn net.Conn) error {
 			respCode = repAtypeNotSupported
 		}
 	}
-	defer target.Close()
 
 	// 根据RFC1928，request与reply有相似结构
 	var reply request
