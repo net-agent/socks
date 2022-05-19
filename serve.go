@@ -85,6 +85,12 @@ func (s *server) Close() error {
 
 // Run 将服务跑起来
 func (s *server) Run(listener net.Listener) error {
+	defer func() {
+		err := recover()
+		if err != nil {
+			log.Printf("socks5 listener recoverd, err=%v\n", err)
+		}
+	}()
 	s.listener = listener
 	for {
 		conn, err := listener.Accept()
@@ -94,6 +100,12 @@ func (s *server) Run(listener net.Listener) error {
 
 		s.connWait.Add(1)
 		go func() {
+			defer func() {
+				err := recover()
+				if err != nil {
+					log.Printf("socks5 worker goroutine recovered, err=%v\n", err)
+				}
+			}()
 			s.serve(conn)
 			s.connWait.Done()
 		}()
